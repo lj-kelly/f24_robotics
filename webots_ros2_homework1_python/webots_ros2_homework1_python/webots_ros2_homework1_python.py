@@ -12,7 +12,7 @@ import math
 
 
 
-LINEAR_VEL = 0.36
+LINEAR_VEL = 0.22
 STOP_DISTANCE = 0.2
 LIDAR_ERROR = 0.05
 LIDAR_AVOID_DISTANCE = 0.7
@@ -76,12 +76,12 @@ class RandomWalk(Node):
         self.pose_saved=position
         
         #Example of how to identify a stall..need better tuned position deltas; wheels spin and example fast
-        diffX = math.fabs(self.pose_saved.x- position.x)
-        diffY = math.fabs(self.pose_saved.y - position.y)
-        if (diffX < 0.0001 and diffY < 0.0001):
-           self.stall = True
-        else:
-           self.stall = False
+        #diffX = math.fabs(self.pose_saved.x- position.x)
+        #diffY = math.fabs(self.pose_saved.y - position.y)
+        #if (diffX < 0.0001 and diffY < 0.0001):
+           #self.stall = True
+        #else:
+           #self.stall = False
            
         return None
         
