@@ -1,21 +1,22 @@
 import rclpy
-# import the ROS2 python libraries
 from rclpy.node import Node
-# import the Twist module from geometry_msgs interface
 from geometry_msgs.msg import Twist
-# import the LaserScan module from sensor_msgs interface
 from sensor_msgs.msg import LaserScan
 from nav_msgs.msg import Odometry
-# import Quality of Service library, to set the correct profile and reliability in order to read sensor data.
 from rclpy.qos import ReliabilityPolicy, QoSProfile
 import math
+import matplotlib.pyplot as plt
+from PIL import Image
+import signal
+import sys
+import os
 
 
 
-LINEAR_VEL = 0.05
+LINEAR_VEL = 0.09 #was 0.07
 STOP_DISTANCE = 0.2
 LIDAR_ERROR = 0.05
-LIDAR_AVOID_DISTANCE = 0.8
+LIDAR_AVOID_DISTANCE = 0.78
 SAFE_STOP_DISTANCE = STOP_DISTANCE + LIDAR_ERROR
 RIGHT_SIDE_INDEX = 270
 RIGHT_FRONT_INDEX = 210
@@ -27,8 +28,7 @@ OSCILLATION_THRESHOLD = 6
 class RandomWalk(Node):
 
     def __init__(self):
-        # Initialize the publisher
-        super().__init__('random_walk_node')
+        super().__init__('walle_wall_follow')
         self.scan_cleaned = []
         self.stall = False
         self.backup = False
@@ -45,6 +45,7 @@ class RandomWalk(Node):
             '/odom',
             self.listener_callback2,
             QoSProfile(depth=10, reliability=ReliabilityPolicy.BEST_EFFORT))
+
         self.laser_forward = 0
         self.odom_data = 0
         timer_period = 0.5
@@ -53,15 +54,19 @@ class RandomWalk(Node):
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
         self.START = 0
+        self.initial_position = (1.8, 6.3)  
+        self.previous_position = None
+        self.total_distance = 0.0
+        self.positions = [] 
+        self.max_distance = 0.0  
+        self.most_distant_point = None  
+        
 
 
     def listener_callback1(self, msg1):
-        #self.get_logger().info('scan: "%s"' % msg1.ranges)
         scan = msg1.ranges
         self.scan_cleaned = []
-       
-        #self.get_logger().info('scan: "%s"' % scan)
-        # Assume 360 range measurements
+    
         for reading in scan:
             if reading == float('Inf'):
                 self.scan_cleaned.append(3.5)
@@ -74,14 +79,39 @@ class RandomWalk(Node):
 
     def listener_callback2(self, msg2):
         position = msg2.pose.pose.position
-        orientation = msg2.pose.pose.orientation
-        (posx, posy, posz) = (position.x, position.y, position.z)
-        (qx, qy, qz, qw) = (orientation.x, orientation.y, orientation.z, orientation.w)
-        self.get_logger().info('self position: {},{},{}'.format(posx,posy,posz));
-        # similarly for twist message if you need
+        
+
         self.pose_saved=position
         
-        #Example of how to identify a stall..need better tuned position deltas; wheels spin and example fast
+        normalized_x = position.x + self.initial_position[0]
+        normalized_y = position.y + self.initial_position[1]
+
+        if self.previous_position is not None:
+            dx = normalized_x - self.previous_position[0]
+            dy = normalized_y - self.previous_position[1]
+            distance = math.sqrt(dx ** 2 + dy ** 2)
+            self.total_distance += distance
+        
+
+        self.positions.append((normalized_x, normalized_y))
+
+        distance_from_start = math.sqrt(
+            (normalized_x - self.initial_position[0]) ** 2 +
+            (normalized_y - self.initial_position[1]) ** 2
+        )
+
+
+        if distance_from_start > self.max_distance:
+            self.max_distance = distance_from_start
+            self.most_distant_point = (normalized_x, normalized_y)
+
+        self.previous_position = (normalized_x, normalized_y)
+        
+
+        self.get_logger().info(f"Total distance covered: {self.total_distance:.2f} meters")
+        
+        
+        
         diffX = math.fabs(self.pose_saved.x- position.x)
         diffY = math.fabs(self.pose_saved.y - position.y)
         if (diffX < 0.0001 and diffY < 0.0001):
@@ -101,20 +131,13 @@ class RandomWalk(Node):
         if (len(self.scan_cleaned)==0):
     	    self.turtlebot_moving = False
     	    return
-    	    
-        #left_lidar_samples = self.scan_cleaned[LEFT_SIDE_INDEX:LEFT_FRONT_INDEX]
-        #right_lidar_samples = self.scan_cleaned[RIGHT_FRONT_INDEX:RIGHT_SIDE_INDEX]
-        #front_lidar_samples = self.scan_cleaned[LEFT_FRONT_INDEX:RIGHT_FRONT_INDEX]
+    	
         
         left_lidar_min = min(self.scan_cleaned[LEFT_SIDE_INDEX:LEFT_FRONT_INDEX])
         right_lidar_min = min(self.scan_cleaned[RIGHT_FRONT_INDEX:RIGHT_SIDE_INDEX])
         front_lidar_min = min(self.scan_cleaned[LEFT_FRONT_INDEX:RIGHT_FRONT_INDEX])
 
-        #self.get_logger().info('left scan slice: "%s"'%  min(left_lidar_samples))
-        #self.get_logger().info('front scan slice: "%s"'%  min(front_lidar_samples))
-        #self.get_logger().info('right scan slice: "%s"'%  min(right_lidar_samples))
-
-        if front_lidar_min < SAFE_STOP_DISTANCE:
+        if front_lidar_min < SAFE_STOP_DISTANCE: #stop section
             if self.turtlebot_moving == True:
                 self.cmd.linear.x = 0.0 
                 self.cmd.angular.z = 0.0 
@@ -122,24 +145,24 @@ class RandomWalk(Node):
                 self.turtlebot_moving = False
                 self.get_logger().info('Stopping')
                 return
-        elif front_lidar_min < LIDAR_AVOID_DISTANCE:
+        elif front_lidar_min < LIDAR_AVOID_DISTANCE: #turn section
                 self.cmd.linear.x = 0.0
                 if (right_lidar_min < left_lidar_min):
                     #turn left
-                   self.cmd.angular.z = 0.24
+                   self.cmd.angular.z = 0.29
                    self.oscillation_count += 1
                 else:
                     #turn right
-                   self.cmd.angular.z = -0.24
+                   self.cmd.angular.z = -0.29
                    self.oscillation_count += 1
-                if self.oscillation_count > 6:
-                    self.cmd.angular.z = 0.42 #was 48
-                    self.cmd.linear.x = 0.005 #maybe->NO
+                if self.oscillation_count > 6: #stop oscillating if stuck
+                    self.cmd.angular.z = 0.46 #was 48
+                    self.cmd.linear.x = 0.00 #maybe->NO
                 self.publisher_.publish(self.cmd)
                 self.get_logger().info('Turning')
                 self.turtlebot_moving = True
                 self.START = 1
-        elif (self.START == 1) and (front_lidar_min > LIDAR_AVOID_DISTANCE):
+        elif (self.START == 1) and (front_lidar_min > LIDAR_AVOID_DISTANCE): #wall follow, go forward and turn right a little bit
             self.cmd.linear.x = 0.1
             self.cmd.angular.z = -0.16
             # self.cmd.linear.z = 0.0
@@ -147,12 +170,13 @@ class RandomWalk(Node):
             self.publisher_.publish(self.cmd)
             self.turtlebot_moving = True
 
-        elif self.backup == True and self.START == 1:
-            self.cmd.linear.x = -0.6
-            self.cmd.angular.z = -0.2
+        elif self.backup == True and self.START == 1: #reverse and turn a little bit if stuck
+            self.cmd.linear.x = -0.7
+            self.cmd.angular.z = 0.3
             self.publisher_.publish(self.cmd)
             self.turtlebot_moving = True
-        else:
+
+        else: #go straight
             self.cmd.linear.x = 0.12
             self.cmd.angular.z = 0.0
             self.cmd.linear.z = 0.0
@@ -162,7 +186,7 @@ class RandomWalk(Node):
         
 
 
-        if self.stall == True and self.turtlebot_moving == False:
+        if self.stall == True and self.turtlebot_moving == False: #reverse if stuck
             self.cmd.linear.x = -0.6
             self.cmd.linear.z = 0.0
             self.publisher_.publish(self.cmd)
@@ -177,22 +201,74 @@ class RandomWalk(Node):
            self.get_logger().info('Stall reported')
            
         
-        # Display the message on the console
         self.get_logger().info('Publishing: "%s"' % self.cmd)
  
+    def save_positions_to_file(self, filename="/home/liam/f24_robotics/webots_ros2_homework1_python/robot_path.csv"):
+        """Save the robot's path to a CSV file for later plotting."""
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+        with open(filename, "w") as f:
+            for position in self.positions:
+                f.write(f"{position[0]},{position[1]}\n")
 
+
+    def plot_path(self):
+        """Plot the robot's path using matplotlib on top of a background image."""
+        img_path = '/home/liam/f24_robotics/webots_ros2_homework1_python/resource/apartment2.jpg'
+    
+        if not os.path.exists(img_path):
+            self.get_logger().error(f"Image file not found: {img_path}")
+            return
+
+        img = Image.open(img_path)
+        rotated_positions = [(x, y) for x, y in self.positions]
+        
+        img_width, img_height = img.size
+
+        fig, ax = plt.subplots()
+
+        ax.imshow(img, extent=[-1, 11.5, -.5, 10])
+
+        x_vals = [pos[0] for pos in rotated_positions]
+        y_vals = [pos[1] for pos in rotated_positions]
+
+        ax.plot(x_vals, y_vals, marker='o', color='blue', linewidth=2)
+
+        ax.set_title("Robot Path Overlaid on Apartment Layout")
+        ax.set_xlabel("X Position (meters)")
+        ax.set_ylabel("Y Position (meters)")
+
+        plt.show()
+
+    def print_trial_results(self):
+        """Print the results of the trial, including total distance and most distant point."""
+        self.get_logger().info(f"Trial results:")
+        self.get_logger().info(f"Total distance: {self.total_distance:.2f} meters")
+        if self.most_distant_point:
+            self.get_logger().info(f"Most distant point: {self.most_distant_point} at distance {self.max_distance:.2f} meters")
+        else:
+            self.get_logger().info("No distant point recorded")
+
+
+def signal_handler(sig, frame):
+    print("Termintaing Wall-E...")
+    if 'walle_wall_follow' in globals():
+        walle_wall_follow.save_positions_to_file()
+        walle_wall_follow.plot_path()
+        walle_wall_follow.print_trial_results()  
+        walle_wall_follow.destroy_node()
+    rclpy.shutdown()
+    sys.exit(0)
 
 def main(args=None):
-    # initialize the ROS communication
+
     rclpy.init(args=args)
-    # declare the node constructor
-    random_walk_node = RandomWalk()
-    # pause the program execution, waits for a request to kill the node (ctrl+c)
-    rclpy.spin(random_walk_node)
-    # Explicity destroy the node
-    random_walk_node.destroy_node()
-    # shutdown the ROS communication
-    rclpy.shutdown()
+
+    global walle_wall_follow
+    walle_wall_follow = RandomWalk()
+    signal.signal(signal.SIGINT, signal_handler)
+
+    rclpy.spin(walle_wall_follow)
+
 
 
 

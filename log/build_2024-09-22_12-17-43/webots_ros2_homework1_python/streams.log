@@ -1,0 +1,29 @@
+[0.588s] Invoking command in '/home/liam/f24_robotics/webots_ros2_homework1_python': PYTHONPATH=/home/liam/f24_robotics/build/webots_ros2_homework1_python/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/liam/f24_robotics/install/webots_ros2_homework1_python/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated setup.py egg_info --egg-base ../build/webots_ros2_homework1_python build --build-base /home/liam/f24_robotics/build/webots_ros2_homework1_python/build install --record /home/liam/f24_robotics/build/webots_ros2_homework1_python/install.log --single-version-externally-managed install_data
+[0.802s] running egg_info
+[0.803s] writing ../build/webots_ros2_homework1_python/webots_ros2_homework1_python.egg-info/PKG-INFO
+[0.803s] writing dependency_links to ../build/webots_ros2_homework1_python/webots_ros2_homework1_python.egg-info/dependency_links.txt
+[0.804s] writing entry points to ../build/webots_ros2_homework1_python/webots_ros2_homework1_python.egg-info/entry_points.txt
+[0.804s] writing requirements to ../build/webots_ros2_homework1_python/webots_ros2_homework1_python.egg-info/requires.txt
+[0.804s] writing top-level names to ../build/webots_ros2_homework1_python/webots_ros2_homework1_python.egg-info/top_level.txt
+[0.806s] reading manifest file '../build/webots_ros2_homework1_python/webots_ros2_homework1_python.egg-info/SOURCES.txt'
+[0.807s] writing manifest file '../build/webots_ros2_homework1_python/webots_ros2_homework1_python.egg-info/SOURCES.txt'
+[0.807s] running build
+[0.808s] running build_py
+[0.808s] copying webots_ros2_homework1_python/webots_ros2_homework1_python.py -> /home/liam/f24_robotics/build/webots_ros2_homework1_python/build/lib/webots_ros2_homework1_python
+[0.808s] running install
+[0.808s] running install_lib
+[0.809s] copying /home/liam/f24_robotics/build/webots_ros2_homework1_python/build/lib/webots_ros2_homework1_python/webots_ros2_homework1_python.py -> /home/liam/f24_robotics/install/webots_ros2_homework1_python/lib/python3.10/site-packages/webots_ros2_homework1_python
+[0.809s] byte-compiling /home/liam/f24_robotics/install/webots_ros2_homework1_python/lib/python3.10/site-packages/webots_ros2_homework1_python/webots_ros2_homework1_python.py to webots_ros2_homework1_python.cpython-310.pyc
+[0.812s]   File "/home/liam/f24_robotics/install/webots_ros2_homework1_python/lib/python3.10/site-packages/webots_ros2_homework1_python/webots_ros2_homework1_python.py", line 252
+[0.812s]     y_vals = [pos[1] for pos in rotated_positions]8
+[0.812s]                                                   ^
+[0.812s] SyntaxError: invalid syntax
+[0.812s] 
+[0.812s] running install_data
+[0.812s] running install_egg_info
+[0.814s] removing '/home/liam/f24_robotics/install/webots_ros2_homework1_python/lib/python3.10/site-packages/webots_ros2_homework1_python-0.0.0-py3.10.egg-info' (and everything under it)
+[0.815s] Copying ../build/webots_ros2_homework1_python/webots_ros2_homework1_python.egg-info to /home/liam/f24_robotics/install/webots_ros2_homework1_python/lib/python3.10/site-packages/webots_ros2_homework1_python-0.0.0-py3.10.egg-info
+[0.816s] running install_scripts
+[0.834s] Installing webots_ros2_homework1_python script to /home/liam/f24_robotics/install/webots_ros2_homework1_python/lib/webots_ros2_homework1_python
+[0.834s] writing list of installed files to '/home/liam/f24_robotics/build/webots_ros2_homework1_python/install.log'
+[0.852s] Invoked command in '/home/liam/f24_robotics/webots_ros2_homework1_python' returned '0': PYTHONPATH=/home/liam/f24_robotics/build/webots_ros2_homework1_python/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/liam/f24_robotics/install/webots_ros2_homework1_python/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated setup.py egg_info --egg-base ../build/webots_ros2_homework1_python build --build-base /home/liam/f24_robotics/build/webots_ros2_homework1_python/build install --record /home/liam/f24_robotics/build/webots_ros2_homework1_python/install.log --single-version-externally-managed install_data
