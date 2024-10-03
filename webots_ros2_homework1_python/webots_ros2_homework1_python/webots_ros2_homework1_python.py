@@ -131,6 +131,24 @@ class RandomWalk(Node):
             self.publisher_.publish(self.cmd)
             self.turtlebot_moving = False
             return
+    
+        # #move forward five meters block
+        # if(self.total_distance < 5.0): #move fwd 
+        #     self.cmd.linear.x = 0.075 #speed is 75mm/s
+        #     # self.cmd.linear.x = 0.15 #speed is 150mm/s
+        #     self.cmd.angular.z = 0.0
+        #     self.cmd.linear.z = 0.0
+        #     self.publisher_.publish(self.cmd)
+        #     self.turtlebot_moving = True
+        # else: #stop
+        #     self.cmd.linear.x = 0.0
+        #     self.cmd.angular.z = 0.0
+        #     self.cmd.linear.z = 0.0
+        #     self.publisher_.publish(self.cmd)
+        #     self.turtlebot_moving = False
+        #     return
+        
+        
 
 
 
@@ -150,6 +168,8 @@ class RandomWalk(Node):
 def signal_handler(sig, frame):
     print("Termintaing Wall-E...")
     if 'walle_wall_follow' in globals():
+        # walle_wall_follow.save_positions_to_file()
+        # walle_wall_follow.plot_path()
         walle_wall_follow.print_trial_results()  
         walle_wall_follow.destroy_node()
     rclpy.shutdown()
