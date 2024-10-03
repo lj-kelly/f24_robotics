@@ -15,7 +15,7 @@ import os
 
 
 
-LINEAR_VEL = 0.09 #was 0.07
+LINEAR_VEL = 0.1 #was 0.07
 STOP_DISTANCE = 0.2
 LIDAR_ERROR = 0.05
 LIDAR_AVOID_DISTANCE = 0.78
@@ -56,12 +56,13 @@ class RandomWalk(Node):
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
         self.START = 0
-        self.initial_position = (1.8, 6.3)  
+        self.initial_position = (5.2, 6)  
         self.previous_position = None
         self.total_distance = 0.0
         self.positions = [] 
         self.max_distance = 0.0  
         self.most_distant_point = None  
+        self.moved_once = True
         
 
 
@@ -84,31 +85,6 @@ class RandomWalk(Node):
         
 
         self.pose_saved=position
-        
-        normalized_x = position.x + self.initial_position[0]
-        normalized_y = position.y + self.initial_position[1]
-
-        if self.previous_position is not None:
-            dx = normalized_x - self.previous_position[0]
-            dy = normalized_y - self.previous_position[1]
-            distance = math.sqrt(dx ** 2 + dy ** 2)
-            self.total_distance += distance
-        
-
-        self.positions.append((normalized_x, normalized_y))
-
-        distance_from_start = math.sqrt(
-            (normalized_x - self.initial_position[0]) ** 2 +
-            (normalized_y - self.initial_position[1]) ** 2
-        )
-
-
-        if distance_from_start > self.max_distance:
-            self.max_distance = distance_from_start
-            self.most_distant_point = (normalized_x, normalized_y)
-
-        self.previous_position = (normalized_x, normalized_y)
-        
 
         self.get_logger().info(f"Total distance covered: {self.total_distance:.2f} meters")
         
@@ -127,7 +103,8 @@ class RandomWalk(Node):
            self.backup = False
            
         return None
-        
+
+
     def timer_callback(self):
 
         if (len(self.scan_cleaned)==0):
@@ -139,61 +116,23 @@ class RandomWalk(Node):
         right_lidar_min = min(self.scan_cleaned[RIGHT_FRONT_INDEX:RIGHT_SIDE_INDEX])
         front_lidar_min = min(self.scan_cleaned[LEFT_FRONT_INDEX:RIGHT_FRONT_INDEX])
 
-        if front_lidar_min < SAFE_STOP_DISTANCE: #stop section
-            if self.turtlebot_moving == True:
-                self.cmd.linear.x = 0.0 
-                self.cmd.angular.z = 0.0 
-                self.publisher_.publish(self.cmd)
-                self.turtlebot_moving = False
-                self.get_logger().info('Stopping')
-                return
-        elif front_lidar_min < LIDAR_AVOID_DISTANCE: #turn section
-                self.cmd.linear.x = 0.0
-                if (right_lidar_min < left_lidar_min):
-                    #turn left
-                   self.cmd.angular.z = 0.29
-                   self.oscillation_count += 1
-                else:
-                    #turn right
-                   self.cmd.angular.z = -0.29
-                   self.oscillation_count += 1
-                if self.oscillation_count > 6: #stop oscillating if stuck
-                    self.cmd.angular.z = 0.46 #was 48
-                    self.cmd.linear.x = 0.00 #maybe->NO
-                self.publisher_.publish(self.cmd)
-                self.get_logger().info('Turning')
-                self.turtlebot_moving = True
-                self.START = 1
-        elif (self.START == 1) and (front_lidar_min > LIDAR_AVOID_DISTANCE): #wall follow, go forward and turn right a little bit
-            self.cmd.linear.x = 0.1
-            self.cmd.angular.z = -0.16
-            # self.cmd.linear.z = 0.0
-            self.oscillation_count = 0
-            self.publisher_.publish(self.cmd)
-            self.turtlebot_moving = True
-
-        elif self.backup == True and self.START == 1: #reverse and turn a little bit if stuck
-            self.cmd.linear.x = -0.7
-            self.cmd.angular.z = 0.3
-            self.publisher_.publish(self.cmd)
-            self.turtlebot_moving = True
-
-        else: #go straight
-            self.cmd.linear.x = 0.12
+        #move forward one meter block
+        if(self.total_distance < 1.0): #move fwd
+            self.cmd.linear.x = 0.075 #speed is 75mm/s
+            # self.cmd.linear.x = 0.15 #speed is 150mm/s
             self.cmd.angular.z = 0.0
             self.cmd.linear.z = 0.0
             self.publisher_.publish(self.cmd)
             self.turtlebot_moving = True
-            
-        
-
-
-        if self.stall == True and self.turtlebot_moving == False: #reverse if stuck
-            self.cmd.linear.x = -0.6
+        else: #stop
+            self.cmd.linear.x = 0.0
+            self.cmd.angular.z = 0.0
             self.cmd.linear.z = 0.0
             self.publisher_.publish(self.cmd)
-            self.turtlebot_moving = True
-        
+            self.turtlebot_moving = False
+            return
+
+
 
 
         self.get_logger().info('Distance of the obstacle : %f' % front_lidar_min)
@@ -205,57 +144,12 @@ class RandomWalk(Node):
         
         self.get_logger().info('Publishing: "%s"' % self.cmd)
  
-    def save_positions_to_file(self, filename="/home/liam/f24_robotics/webots_ros2_homework1_python/robot_path.csv"):
-        """Save the robot's path to a CSV file for later plotting."""
-        os.makedirs(os.path.dirname(filename), exist_ok=True)
-        with open(filename, "w") as f:
-            for position in self.positions:
-                f.write(f"{position[0]},{position[1]}\n")
 
-
-    def plot_path(self):
-        """Plot the robot's path using matplotlib on top of a background image."""
-        img_path = '/home/liam/f24_robotics/webots_ros2_homework1_python/resource/apartment2.jpg'
-    
-        if not os.path.exists(img_path):
-            self.get_logger().error(f"Image file not found: {img_path}")
-            return
-
-        img = Image.open(img_path)
-        rotated_positions = [(x, y) for x, y in self.positions]
-        
-        img_width, img_height = img.size
-
-        fig, ax = plt.subplots()
-
-        ax.imshow(img, extent=[-1, 11.5, -.5, 10])
-
-        x_vals = [pos[0] for pos in rotated_positions]
-        y_vals = [pos[1] for pos in rotated_positions]
-
-        ax.plot(x_vals, y_vals, marker='o', color='blue', linewidth=2)
-
-        ax.set_title("Robot Path Overlaid on Apartment Layout")
-        ax.set_xlabel("X Position (meters)")
-        ax.set_ylabel("Y Position (meters)")
-
-        plt.show()
-
-    def print_trial_results(self):
-        """Print the results of the trial, including total distance and most distant point."""
-        self.get_logger().info(f"Trial results:")
-        self.get_logger().info(f"Total distance: {self.total_distance:.2f} meters")
-        if self.most_distant_point:
-            self.get_logger().info(f"Most distant point: {self.most_distant_point} at distance {self.max_distance:.2f} meters")
-        else:
-            self.get_logger().info("No distant point recorded")
 
 
 def signal_handler(sig, frame):
     print("Termintaing Wall-E...")
     if 'walle_wall_follow' in globals():
-        walle_wall_follow.save_positions_to_file()
-        walle_wall_follow.plot_path()
         walle_wall_follow.print_trial_results()  
         walle_wall_follow.destroy_node()
     rclpy.shutdown()

@@ -104,7 +104,8 @@ def generate_launch_description():
     return LaunchDescription([
         DeclareLaunchArgument(
             'world',
-            default_value='f23_robotics_1.wbt',
+            # default_value='f23_robotics_1.wbt', #old area
+            default_value='f23_turtlebot_lab.wbt', #new area
             description='Choose one of the world files from `/webots_ros2_turtlebot/world` directory'
         ),
         DeclareLaunchArgument(
