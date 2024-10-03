@@ -63,6 +63,7 @@ class RandomWalk(Node):
         self.max_distance = 0.0  
         self.most_distant_point = None  
         self.moved_once = True
+        self.angle_turn = 0
         
 
 
@@ -92,15 +93,15 @@ class RandomWalk(Node):
         
         diffX = math.fabs(self.pose_saved.x- position.x)
         diffY = math.fabs(self.pose_saved.y - position.y)
-        if (diffX < 0.0001 and diffY < 0.0001):
-           self.stall = True
-        else:
-           self.stall = False
+        # if (diffX < 0.0001 and diffY < 0.0001):
+        #    self.stall = True
+        # else:
+        #    self.stall = False
         
-        if (diffX < 0.1 and diffY < 0.1):
-           self.backup = True
-        else:
-           self.backup = False
+        # if (diffX < 0.1 and diffY < 0.1):
+        #    self.backup = True
+        # else:
+        #    self.backup = False
            
         return None
 
@@ -116,21 +117,21 @@ class RandomWalk(Node):
         right_lidar_min = min(self.scan_cleaned[RIGHT_FRONT_INDEX:RIGHT_SIDE_INDEX])
         front_lidar_min = min(self.scan_cleaned[LEFT_FRONT_INDEX:RIGHT_FRONT_INDEX])
 
-        #move forward one meter block
-        if(self.total_distance < 1.0): #move fwd
-            self.cmd.linear.x = 0.075 #speed is 75mm/s
-            # self.cmd.linear.x = 0.15 #speed is 150mm/s
-            self.cmd.angular.z = 0.0
-            self.cmd.linear.z = 0.0
-            self.publisher_.publish(self.cmd)
-            self.turtlebot_moving = True
-        else: #stop
-            self.cmd.linear.x = 0.0
-            self.cmd.angular.z = 0.0
-            self.cmd.linear.z = 0.0
-            self.publisher_.publish(self.cmd)
-            self.turtlebot_moving = False
-            return
+        # #move forward one meter block
+        # if(self.total_distance < 1.0): #move fwd
+        #     self.cmd.linear.x = 0.075 #speed is 75mm/s
+        #     # self.cmd.linear.x = 0.15 #speed is 150mm/s
+        #     self.cmd.angular.z = 0.0
+        #     self.cmd.linear.z = 0.0
+        #     self.publisher_.publish(self.cmd)
+        #     self.turtlebot_moving = True
+        # else: #stop
+        #     self.cmd.linear.x = 0.0
+        #     self.cmd.angular.z = 0.0
+        #     self.cmd.linear.z = 0.0
+        #     self.publisher_.publish(self.cmd)
+        #     self.turtlebot_moving = False
+        #     return
     
         # #move forward five meters block
         # if(self.total_distance < 5.0): #move fwd 
@@ -148,6 +149,70 @@ class RandomWalk(Node):
         #     self.turtlebot_moving = False
         #     return
         
+        
+        #turn ten degrees block
+        if self.angle_turn < 10:  # Want to turn 10 degree
+            self.cmd.angular.z = 0.1  # 0.1 rad/s angular velocity
+            self.publisher_.publish(self.cmd)
+            self.turtlebot_moving = True
+        
+            # Calculate how long to turn for 1 degree (approximately 0.175 seconds for 0.1 rad/s)
+            self.get_clock().sleep_for(rclpy.duration.Duration(seconds=0.175))
+        
+            # Stop after the calculated time
+            self.cmd.angular.z = 0.0
+            self.publisher_.publish(self.cmd)
+            self.turtlebot_moving = False
+            self.angle_turn += 1
+        else:
+            self.cmd.linear.x = 0.0
+            self.cmd.angular.z = 0.0
+            self.publisher_.publish(self.cmd)
+            self.turtlebot_moving = False
+            return
+        
+        # #turn 180 degrees block
+        # if self.angle_turn < 180:  # Want to turn 10 degree
+        #     self.cmd.angular.z = 0.1  # 0.1 rad/s angular velocity
+        #     self.publisher_.publish(self.cmd)
+        #     self.turtlebot_moving = True
+        
+        #     # Calculate how long to turn for 1 degree (approximately 0.175 seconds for 0.1 rad/s)
+        #     self.get_clock().sleep_for(rclpy.duration.Duration(seconds=0.175))
+        
+        #     # Stop after the calculated time
+        #     self.cmd.angular.z = 0.0
+        #     self.publisher_.publish(self.cmd)
+        #     self.turtlebot_moving = False
+        #     self.angle_turn += 1
+        # else:
+        #     self.cmd.linear.x = 0.0
+        #     self.cmd.angular.z = 0.0
+        #     self.publisher_.publish(self.cmd)
+        #     self.turtlebot_moving = False
+        #     return
+
+        # #turn 360 degrees block
+        # if self.angle_turn < 360:  # Want to turn 10 degree
+        #     self.cmd.angular.z = 0.1  # 0.1 rad/s angular velocity
+        #     self.publisher_.publish(self.cmd)
+        #     self.turtlebot_moving = True
+        
+        #     # Calculate how long to turn for 1 degree (approximately 0.175 seconds for 0.1 rad/s)
+        #     self.get_clock().sleep_for(rclpy.duration.Duration(seconds=0.175))
+        
+        #     # Stop after the calculated time
+        #     self.cmd.angular.z = 0.0
+        #     self.publisher_.publish(self.cmd)
+        #     self.turtlebot_moving = False
+        #     self.angle_turn += 1
+        # else:
+        #     self.cmd.linear.x = 0.0
+        #     self.cmd.angular.z = 0.0
+        #     self.publisher_.publish(self.cmd)
+        #     self.turtlebot_moving = False
+        #     return
+
         
 
 
@@ -170,7 +235,7 @@ def signal_handler(sig, frame):
     if 'walle_wall_follow' in globals():
         # walle_wall_follow.save_positions_to_file()
         # walle_wall_follow.plot_path()
-        walle_wall_follow.print_trial_results()  
+        # walle_wall_follow.print_trial_results()  
         walle_wall_follow.destroy_node()
     rclpy.shutdown()
     sys.exit(0)
