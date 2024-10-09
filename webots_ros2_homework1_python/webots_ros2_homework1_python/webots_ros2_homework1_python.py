@@ -7,7 +7,7 @@ from sensor_msgs.msg import LaserScan
 from nav_msgs.msg import Odometry
 from rclpy.qos import ReliabilityPolicy, QoSProfile
 import math
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 from PIL import Image
 import signal
 import sys
