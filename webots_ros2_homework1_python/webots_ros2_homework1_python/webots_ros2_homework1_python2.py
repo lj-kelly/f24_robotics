@@ -16,8 +16,8 @@ import os
 
 
 
-LINEAR_VEL = 0.2 #was 0.07
-STOP_DISTANCE = 0.5
+LINEAR_VEL = 0.09 #was 0.07
+STOP_DISTANCE = 0.2
 LIDAR_ERROR = 0.05
 LIDAR_AVOID_DISTANCE = 0.78
 SAFE_STOP_DISTANCE = STOP_DISTANCE + LIDAR_ERROR
@@ -117,7 +117,7 @@ class RandomWalk(Node):
         self.previous_position = (normalized_x, normalized_y)
         
 
-        #self.get_logger().info(f"Total distance covered: {self.total_distance:.2f} meters")
+        self.get_logger().info(f"Total distance covered: {self.total_distance:.2f} meters")
         
         
         
@@ -161,53 +161,53 @@ class RandomWalk(Node):
         right_lidar_min = min(self.scan_cleaned[RIGHT_FRONT_INDEX:RIGHT_SIDE_INDEX])
         front_lidar_min = min(self.scan_cleaned[LEFT_FRONT_INDEX:RIGHT_FRONT_INDEX])
 
-        if front_lidar_min < SAFE_STOP_DISTANCE:
-            # Stop movement when the wall is reached
-            self.cmd.linear.x = 0.0
-            self.cmd.angular.z = 0.0
-            self.publisher_.publish(self.cmd)
-            self.turtlebot_moving = False
-            self.get_logger().info('Wall reached, stopping and preparing to turn')
-
-            # Rotate approximately 270 degrees (counterclockwise)
-            self.cmd.angular.z = 0.55  # Adjust speed as needed for your robot
-            rotation_duration = 1.0  # Adjust the duration to achieve 270-degree rotation
-            end_time = self.get_clock().now().seconds_nanoseconds()[0] + rotation_duration
-
-            while self.get_clock().now().seconds_nanoseconds()[0] < end_time:
+        if front_lidar_min < SAFE_STOP_DISTANCE: #stop section
+            if self.turtlebot_moving == True:
+                self.cmd.linear.x = 0.0 
+                self.cmd.angular.z = 0.0 
                 self.publisher_.publish(self.cmd)
-
-            # Reset angular velocity after rotation
-            self.cmd.angular.z = 0.0
-            self.publisher_.publish(self.cmd)
-            self.get_logger().info('Completed rotation, moving forward')
-
-            # Move forward again
-            self.cmd.linear.x = 0.2
-            self.publisher_.publish(self.cmd)
-            self.turtlebot_moving = True
-
-        elif left_lidar_min < LIDAR_AVOID_DISTANCE:
-            # Turn away from obstacle on the left
+                self.turtlebot_moving = False
+                self.get_logger().info('Stopping')
+                return
+        elif front_lidar_min < LIDAR_AVOID_DISTANCE: #turn section
+                self.cmd.linear.x = 0.0
+                if (right_lidar_min < left_lidar_min):
+                    #turn left
+                   self.cmd.angular.z = 0.29
+                   self.oscillation_count += 1
+                else:
+                    #turn right
+                   self.cmd.angular.z = -0.29
+                   self.oscillation_count += 1
+                if self.oscillation_count > 6: #stop oscillating if stuck
+                    self.cmd.angular.z = 0.46 #was 48
+                    self.cmd.linear.x = 0.00 #maybe->NO
+                self.publisher_.publish(self.cmd)
+                self.get_logger().info('Turning')
+                self.turtlebot_moving = True
+                self.START = 1
+        elif (self.START == 1) and (front_lidar_min > LIDAR_AVOID_DISTANCE): #wall follow, go forward and turn right a little bit
             self.cmd.linear.x = 0.1
-            self.cmd.angular.z = -0.3  # Turn right
+            self.cmd.angular.z = -0.16
+            # self.cmd.linear.z = 0.0
+            self.oscillation_count = 0
             self.publisher_.publish(self.cmd)
-            self.get_logger().info('Avoiding obstacle on the left')
             self.turtlebot_moving = True
 
-        elif right_lidar_min < LIDAR_AVOID_DISTANCE:
-            # Turn away from obstacle on the right
-            self.cmd.linear.x = 0.1
-            self.cmd.angular.z = 0.3  # Turn left
+        elif self.backup == True and self.START == 1: #reverse and turn a little bit if stuck
+            self.cmd.linear.x = -0.7
+            self.cmd.angular.z = 0.3
             self.publisher_.publish(self.cmd)
-            self.get_logger().info('Avoiding obstacle on the right')
             self.turtlebot_moving = True
-        else:
-            # Continue moving forward if no obstacle is detected
-            self.cmd.linear.x = 0.2
+
+        else: #go straight
+            self.cmd.linear.x = 0.12
             self.cmd.angular.z = 0.0
+            self.cmd.linear.z = 0.0
             self.publisher_.publish(self.cmd)
             self.turtlebot_moving = True
+            
+        
 
 
         if self.stall == True and self.turtlebot_moving == False: #reverse if stuck

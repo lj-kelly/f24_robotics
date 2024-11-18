@@ -1,5 +1,0 @@
-  File "/home/liam/f24_robotics/install/webots_ros2_homework1_python/lib/python3.10/site-packages/webots_ros2_homework1_python/webots_ros2_homework1_python.py", line 178
-    if self.oscillation_count > 6
-                                 ^
-SyntaxError: expected ':'
-
