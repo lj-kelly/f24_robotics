@@ -32,3 +32,9 @@ ros2 launch webots_ros2_homework1_python f23_robotics_1_launch.py
 *open second terminal
 cd f24_robotics
 ros2 run webots_ros2_homework1_python webots_ros2_homework1_python
+
+these ros2 packages are needed as well.
+    >ros2 run v4l2_camera v4l2_camera_node
+    >ros2 run apriltag_ros apriltag_node --ros-args -r image_rect:=/image_raw -r camera_info:=/camera_info --params-file  `ros2 pkg prefix apriltag_ros`/cfg/>tags_36h11.yaml
+    >ros2 run rqt_image_view rqt_image_view
+    >ros2 topic echo /detections
