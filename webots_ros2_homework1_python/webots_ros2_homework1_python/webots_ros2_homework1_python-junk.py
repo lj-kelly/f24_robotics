@@ -19,12 +19,12 @@ import os
 LINEAR_VEL = 0.2 #was 0.07
 STOP_DISTANCE = 0.5
 LIDAR_ERROR = 0.05
-LIDAR_AVOID_DISTANCE = 1.2
+LIDAR_AVOID_DISTANCE = 0.78
 SAFE_STOP_DISTANCE = STOP_DISTANCE + LIDAR_ERROR
-RIGHT_SIDE_INDEX = 330
-RIGHT_FRONT_INDEX = 270
-LEFT_FRONT_INDEX = 90
-LEFT_SIDE_INDEX = 30
+RIGHT_SIDE_INDEX = 270
+RIGHT_FRONT_INDEX = 210
+LEFT_FRONT_INDEX=150
+LEFT_SIDE_INDEX=90
 START = 0
 OSCILLATION_THRESHOLD = 6
 
@@ -69,7 +69,7 @@ class RandomWalk(Node):
         self.positions = [] 
         self.max_distance = 0.0  
         self.most_distant_point = None  
-        self.detected_tags = set()
+        
 
 
     def listener_callback1(self, msg1):
@@ -81,8 +81,6 @@ class RandomWalk(Node):
                 self.scan_cleaned.append(3.5)
             elif math.isnan(reading):
                 self.scan_cleaned.append(0.0)
-            elif reading == 0.0:
-                self.scan_cleaned.append(3.5)
             else:
             	self.scan_cleaned.append(reading)
 
@@ -144,14 +142,13 @@ class RandomWalk(Node):
         :param msg: The AprilTagDetectionArray message containing detected AprilTags data
         """
         for detection in msg.detections:
-            if hasattr(detection, 'id'):
-                tag_id = detection.id  # Extract the first ID from the detected tag (assuming single ID)
+            tag_id = detection.id[0]  # Extract the first ID from the detected tag (assuming single ID)
             # Check if we have already detected this tag ID
-                if tag_id not in self.detected_tags:
+            if tag_id not in self.detected_tags:
                 # Add this tag ID to the set of detected tags to avoid duplicates
-                    self.detected_tags.add(tag_id)
+                self.detected_tags.add(tag_id)
                 # Log information about the detected tag, including its ID and full detection info
-                    self.get_logger().info(f"Tag detected: ID {tag_id}")
+                self.get_logger().info(f"Tag detected: ID {tag_id}, Info: {detection}")
                     
     def timer_callback(self):
 
@@ -160,13 +157,10 @@ class RandomWalk(Node):
     	    return
     	
         
-#        left_lidar_min = min(self.scan_cleaned[LEFT_SIDE_INDEX:LEFT_FRONT_INDEX])
-#        right_lidar_min = min(self.scan_cleaned[RIGHT_FRONT_INDEX:RIGHT_SIDE_INDEX])
-#        front_lidar_min = min(self.scan_cleaned[LEFT_FRONT_INDEX:RIGHT_FRONT_INDEX])
-        left_lidar_min = min(self.scan_cleaned[30:90])   # Left side
-        right_lidar_min = min(self.scan_cleaned[270:330]) # Right side
-        front_lidar_min = min(min(self.scan_cleaned[0:30]), min(self.scan_cleaned[330:]))
-        
+        left_lidar_min = min(self.scan_cleaned[LEFT_SIDE_INDEX:LEFT_FRONT_INDEX])
+        right_lidar_min = min(self.scan_cleaned[RIGHT_FRONT_INDEX:RIGHT_SIDE_INDEX])
+        front_lidar_min = min(self.scan_cleaned[LEFT_FRONT_INDEX:RIGHT_FRONT_INDEX])
+
         if front_lidar_min < SAFE_STOP_DISTANCE:
             # Stop movement when the wall is reached
             self.cmd.linear.x = 0.0
@@ -278,11 +272,12 @@ class RandomWalk(Node):
         else:
             self.get_logger().info("No distant point recorded")
 
+
 def signal_handler(sig, frame):
     print("Termintaing Wall-E...")
     if 'walle_wall_follow' in globals():
-       # walle_wall_follow.save_positions_to_file()
-       # walle_wall_follow.plot_path()
+        #walle_wall_follow.save_positions_to_file()
+        #walle_wall_follow.plot_path()
         walle_wall_follow.print_trial_results()  
         walle_wall_follow.destroy_node()
     rclpy.shutdown()
