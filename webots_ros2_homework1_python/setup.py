@@ -4,11 +4,13 @@ package_name = 'webots_ros2_homework1_python'
 
 data_files = []
 data_files.append(('share/ament_index/resource_index/packages', ['resource/' + package_name]))
-data_files.append(('share/' + package_name + '/launch', ['launch/f23_robotics_1_launch.py']))
+#data_files.append(('share/' + package_name + '/launch', ['launch/f23_robotics_1_launch.py'])) _1_ runs world and controller separate
+data_files.append(('share/' + package_name + '/launch', ['launch/f23_robotics_2_launch.py'])) #_2_ runs controller and world together
 
 data_files.append(('share/' + package_name + '/worlds', [
     #'worlds/f23_robotics_1.wbt', old
-    'worlds/f23_turtlebot_lab.wbt', #new
+    #'worlds/f23_turtlebot_lab.wbt', #new
+    'worlds/maze2.wbt', #new x2
 ]))
 data_files.append(('share/' + package_name, ['package.xml']))
 data_files.append(('share/' + package_name + '/resource', [

@@ -1,0 +1,40 @@
+[0.952s] Invoking command in '/home/liam/f24_robotics/webots_ros2_homework1_python': PYTHONPATH=/home/liam/f24_robotics/build/webots_ros2_homework1_python/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/liam/f24_robotics/install/webots_ros2_homework1_python/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated setup.py egg_info --egg-base ../build/webots_ros2_homework1_python build --build-base /home/liam/f24_robotics/build/webots_ros2_homework1_python/build install --record /home/liam/f24_robotics/build/webots_ros2_homework1_python/install.log --single-version-externally-managed install_data
+[1.143s] Traceback (most recent call last):
+[1.143s]   File "/home/liam/f24_robotics/webots_ros2_homework1_python/setup.py", line 1, in <module>
+[1.143s]     from setuptools import find_packages, setup
+[1.144s]   File "/usr/lib/python3/dist-packages/setuptools/__init__.py", line 16, in <module>
+[1.154s]     import setuptools.version
+[1.154s]   File "/usr/lib/python3/dist-packages/setuptools/version.py", line 1, in <module>
+[1.155s]     import pkg_resources
+[1.155s]   File "/usr/lib/python3/dist-packages/pkg_resources/__init__.py", line 3267, in <module>
+[1.156s]     def _initialize_master_working_set():
+[1.156s]   File "/usr/lib/python3/dist-packages/pkg_resources/__init__.py", line 3241, in _call_aside
+[1.157s]     f(*args, **kwargs)
+[1.157s]   File "/usr/lib/python3/dist-packages/pkg_resources/__init__.py", line 3279, in _initialize_master_working_set
+[1.158s]     working_set = WorkingSet._build_master()
+[1.158s]   File "/usr/lib/python3/dist-packages/pkg_resources/__init__.py", line 564, in _build_master
+[1.159s]     ws = cls()
+[1.159s]   File "/usr/lib/python3/dist-packages/pkg_resources/__init__.py", line 557, in __init__
+[1.159s]     self.add_entry(entry)
+[1.159s]   File "/usr/lib/python3/dist-packages/pkg_resources/__init__.py", line 613, in add_entry
+[1.159s]     for dist in find_distributions(entry, True):
+[1.160s]   File "/usr/lib/python3/dist-packages/pkg_resources/__init__.py", line 2077, in find_on_path
+[1.160s]     for dist in factory(fullpath):
+[1.160s]   File "/usr/lib/python3/dist-packages/pkg_resources/__init__.py", line 2142, in distributions_from_metadata
+[1.160s]     yield Distribution.from_location(
+[1.161s]   File "/usr/lib/python3/dist-packages/pkg_resources/__init__.py", line 2606, in from_location
+[1.161s]     )._reload_version()
+[1.161s]   File "/usr/lib/python3/dist-packages/pkg_resources/__init__.py", line 3004, in _reload_version
+[1.161s]     md_version = self._get_version()
+[1.162s]   File "/usr/lib/python3/dist-packages/pkg_resources/__init__.py", line 2785, in _get_version
+[1.162s]     version = _version_from_file(lines)
+[1.163s]   File "/usr/lib/python3/dist-packages/pkg_resources/__init__.py", line 2571, in _version_from_file
+[1.163s]     return safe_version(value.strip()) or None
+[1.164s]   File "/usr/lib/python3/dist-packages/pkg_resources/__init__.py", line 1323, in safe_version
+[1.164s]     return str(packaging.version.Version(version))
+[1.164s]   File "/usr/lib/python3/dist-packages/pkg_resources/_vendor/packaging/version.py", line 281, in __init__
+[1.164s]     self._key = _cmpkey(
+[1.165s]   File "/usr/lib/python3/dist-packages/pkg_resources/_vendor/packaging/version.py", line 466, in _cmpkey
+[1.165s]     if pre is None and post is None and dev is not None:
+[1.165s] KeyboardInterrupt
+[1.195s] Invoked command in '/home/liam/f24_robotics/webots_ros2_homework1_python' returned '-2': PYTHONPATH=/home/liam/f24_robotics/build/webots_ros2_homework1_python/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/liam/f24_robotics/install/webots_ros2_homework1_python/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated setup.py egg_info --egg-base ../build/webots_ros2_homework1_python build --build-base /home/liam/f24_robotics/build/webots_ros2_homework1_python/build install --record /home/liam/f24_robotics/build/webots_ros2_homework1_python/install.log --single-version-externally-managed install_data

@@ -16,25 +16,27 @@ Tutorials to complete:
 
 [Webots/ROS2/Heuristic Search](./Homework1/Assignment.md)
 
-
+***Project 3***  
+To launch Webots and run controller with one line:  
+ros2 launch webots_ros2_homework1_python f23_robotics_2_launch.py
 
 ***Homework Assignment 4***
 
-Algorithm sends robot in a straight line to a wall in search of an apriltag. Once at the wall, rotates almost one full rotation and proceeds in a straight line until a new wall is found.
+Algorithm sends robot in a straight line to a wall in search of an apriltag. Once at the wall, rotates almost one full rotation and proceeds in a straight line until a new wall is found.  
 
-RUN WEBOTS
-*open first terminal
-cd f24_robotics
-colcon build
-source install/setup.bash
+RUN WEBOTS  
+*open first terminal  
+cd f24_robotics  
+colcon build  
+source install/setup.bash  
 ros2 launch webots_ros2_homework1_python f23_robotics_1_launch.py
+  
+*open second terminal  
+cd f24_robotics  
+ros2 run webots_ros2_homework1_python webots_ros2_homework1_python  
 
-*open second terminal
-cd f24_robotics
-ros2 run webots_ros2_homework1_python webots_ros2_homework1_python
-
-these ros2 packages are needed as well.
-    >ros2 run v4l2_camera v4l2_camera_node
-    >ros2 run apriltag_ros apriltag_node --ros-args -r image_rect:=/image_raw -r camera_info:=/camera_info --params-file  `ros2 pkg prefix apriltag_ros`/cfg/>tags_36h11.yaml
-    >ros2 run rqt_image_view rqt_image_view
-    >ros2 topic echo /detections
+these ros2 packages are needed as well.  
+    1. ros2 run v4l2_camera v4l2_camera_node  
+    2. ros2 run apriltag_ros apriltag_node --ros-args -r image_rect:=/image_raw -r camera_info:=/camera_info --params-file  `ros2 pkg prefix apriltag_ros`/cfg/>tags_36h11.yaml  
+    3. ros2 run rqt_image_view rqt_image_view  
+    4. os2 topic echo /detections  

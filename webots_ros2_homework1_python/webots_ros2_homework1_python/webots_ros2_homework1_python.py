@@ -17,14 +17,22 @@ import os
 
 
 LINEAR_VEL = 0.2 #was 0.07
-STOP_DISTANCE = 0.5
+STOP_DISTANCE = 0.35
 LIDAR_ERROR = 0.05
-LIDAR_AVOID_DISTANCE = 1.2
+LIDAR_AVOID_DISTANCE = 0.8
 SAFE_STOP_DISTANCE = STOP_DISTANCE + LIDAR_ERROR
-RIGHT_SIDE_INDEX = 330
-RIGHT_FRONT_INDEX = 270
-LEFT_FRONT_INDEX = 90
-LEFT_SIDE_INDEX = 30
+# Real-world robot vals
+# RIGHT_SIDE_INDEX = 330
+# RIGHT_FRONT_INDEX = 270
+# LEFT_FRONT_INDEX = 90
+# LEFT_SIDE_INDEX = 30
+
+# Sim-world robot vals
+RIGHT_SIDE_INDEX = 270
+RIGHT_FRONT_INDEX = 210
+LEFT_FRONT_INDEX=150
+LEFT_SIDE_INDEX=90
+
 START = 0
 OSCILLATION_THRESHOLD = 6
 
@@ -63,7 +71,7 @@ class RandomWalk(Node):
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
         self.START = 0
-        self.initial_position = (1.8, 6.3)  
+        self.initial_position = (4.4, 0.4)  
         self.previous_position = None
         self.total_distance = 0.0
         self.positions = [] 
@@ -81,8 +89,9 @@ class RandomWalk(Node):
                 self.scan_cleaned.append(3.5)
             elif math.isnan(reading):
                 self.scan_cleaned.append(0.0)
-            elif reading == 0.0:
-                self.scan_cleaned.append(3.5)
+            #only needed for real-world
+            # elif reading == 0.0:
+            #     self.scan_cleaned.append(3.5)
             else:
             	self.scan_cleaned.append(reading)
 
@@ -154,18 +163,17 @@ class RandomWalk(Node):
                     self.get_logger().info(f"Tag detected: ID {tag_id}")
                     
     def timer_callback(self):
-
         if (len(self.scan_cleaned)==0):
     	    self.turtlebot_moving = False
     	    return
     	
-        
-#        left_lidar_min = min(self.scan_cleaned[LEFT_SIDE_INDEX:LEFT_FRONT_INDEX])
-#        right_lidar_min = min(self.scan_cleaned[RIGHT_FRONT_INDEX:RIGHT_SIDE_INDEX])
-#        front_lidar_min = min(self.scan_cleaned[LEFT_FRONT_INDEX:RIGHT_FRONT_INDEX])
-        left_lidar_min = min(self.scan_cleaned[30:90])   # Left side
-        right_lidar_min = min(self.scan_cleaned[270:330]) # Right side
-        front_lidar_min = min(min(self.scan_cleaned[0:30]), min(self.scan_cleaned[330:]))
+        #sim
+        left_lidar_min = min(self.scan_cleaned[LEFT_SIDE_INDEX:LEFT_FRONT_INDEX])
+        right_lidar_min = min(self.scan_cleaned[RIGHT_FRONT_INDEX:RIGHT_SIDE_INDEX])
+        front_lidar_min = min(self.scan_cleaned[LEFT_FRONT_INDEX:RIGHT_FRONT_INDEX])
+        # left_lidar_min = min(self.scan_cleaned[30:90])   # Left side
+        # right_lidar_min = min(self.scan_cleaned[270:330]) # Right side
+        # front_lidar_min = min(min(self.scan_cleaned[0:30]), min(self.scan_cleaned[330:]))
         
         if front_lidar_min < SAFE_STOP_DISTANCE:
             # Stop movement when the wall is reached
@@ -176,8 +184,9 @@ class RandomWalk(Node):
             self.get_logger().info('Wall reached, stopping and preparing to turn')
 
             # Rotate approximately 270 degrees (counterclockwise)
-            self.cmd.angular.z = 0.55  # Adjust speed as needed for your robot
-            rotation_duration = 1.0  # Adjust the duration to achieve 270-degree rotation
+            self.cmd.angular.z = 0.2 # Adjust speed as needed for your robot
+            #rotation_duration = 1.0  # Adjust the duration to achieve 270-degree rotation
+            rotation_duration = 0.2  # Adjust the duration to achieve 90-degree rotation
             end_time = self.get_clock().now().seconds_nanoseconds()[0] + rotation_duration
 
             while self.get_clock().now().seconds_nanoseconds()[0] < end_time:
@@ -243,7 +252,7 @@ class RandomWalk(Node):
 
     def plot_path(self):
         """Plot the robot's path using matplotlib on top of a background image."""
-        img_path = '/home/liam/f24_robotics/webots_ros2_homework1_python/resource/apartment2.jpg'
+        img_path = '/home/liam/f24_robotics/webots_ros2_homework1_python/resource/maze3.png'
     
         if not os.path.exists(img_path):
             self.get_logger().error(f"Image file not found: {img_path}")
@@ -257,11 +266,12 @@ class RandomWalk(Node):
         fig, ax = plt.subplots()
 
         ax.imshow(img, extent=[-1, 11.5, -.5, 10])
+        
 
         x_vals = [pos[0] for pos in rotated_positions]
         y_vals = [pos[1] for pos in rotated_positions]
 
-        ax.plot(x_vals, y_vals, marker='o', color='blue', linewidth=2)
+        ax.plot(x_vals, y_vals, marker='o', color='red', linewidth=5)
 
         ax.set_title("Robot Path Overlaid on Apartment Layout")
         ax.set_xlabel("X Position (meters)")
@@ -281,8 +291,8 @@ class RandomWalk(Node):
 def signal_handler(sig, frame):
     print("Termintaing Wall-E...")
     if 'walle_wall_follow' in globals():
-       # walle_wall_follow.save_positions_to_file()
-       # walle_wall_follow.plot_path()
+        walle_wall_follow.save_positions_to_file()
+        walle_wall_follow.plot_path()
         walle_wall_follow.print_trial_results()  
         walle_wall_follow.destroy_node()
     rclpy.shutdown()
